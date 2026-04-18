@@ -1,0 +1,32 @@
+---
+title: Columns Layout
+theme: minimal
+---
+
+# Two Columns
+
+::: columns
+
+::: col
+
+### Left column
+
+A bit of prose on the left side. Columns are a layout primitive — not a named
+style. They split the width 50/50.
+
+:::
+
+::: col
+
+### Right column
+
+```chart type=bar x=label y=value
+label, value
+A, 10
+B, 25
+C, 18
+```
+
+:::
+
+:::

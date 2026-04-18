@@ -1,0 +1,24 @@
+---
+title: Plain Markdown Example
+theme: minimal
+---
+
+# Plain Markdown
+
+This file contains **only** standard CommonMark. It must render identically to a
+regular `.md` file — this validates that MDV is a strict *superset* of
+Markdown.
+
+## A list
+
+- First item
+- Second item
+- Third item
+
+## A blockquote
+
+> "Simplicity is the ultimate sophistication." — Leonardo da Vinci
+
+## A link
+
+See the [MDV spec](./docs/superpowers/specs/2026-04-18-mdv-format-design.md).

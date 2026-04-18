@@ -1,0 +1,56 @@
+---
+title: New Features — Stats, TOC, Formatted Axes
+theme: minimal
+---
+
+# New Features Showcase
+
+::: toc
+:::
+
+## Headline metrics
+
+```stat
+label, value, delta
+Total revenue, $2.06M, +14%
+New customers, 1,238, +8%
+Churn rate, 2.1%, -0.4%
+NPS, 62, +6
+```
+
+## Currency axis
+
+```chart type=bar x=region y=revenue yFormat=currency title="Revenue by region"
+region, revenue
+North, 595000
+South, 475000
+East, 360000
+West, 635000
+```
+
+## Percent axis
+
+```chart type=line x=month y=rate yFormat=percent title="Conversion rate"
+month, rate
+Jan, 0.032
+Feb, 0.041
+Mar, 0.053
+Apr, 0.049
+```
+
+## Thousands formatting
+
+```chart type=bar x=product y=units yFormat=thousands title="Units sold"
+product, units
+Alpha, 12500
+Beta, 8300
+Gamma, 4100
+Delta, 2200
+```
+
+## Notes
+
+The TOC at the top was auto-generated from the `##` headings in this
+document. The `stat` block rendered KPI cards with color-coded deltas.
+Axis formats handle currency, percentages, and thousands separators without
+the author writing any formatting code.

@@ -1,0 +1,26 @@
+---
+title: Bar Chart (inline data)
+theme: minimal
+---
+
+# Revenue by Region
+
+Inline CSV — the simplest way to get a chart on the page.
+
+```chart type=bar x=region y=sales title="Revenue by region (Q1)"
+region, sales
+North, 120
+South, 95
+East, 70
+West, 140
+```
+
+The same chart block, without a title:
+
+```chart type=bar x=region y=sales
+region, sales
+North, 120
+South, 95
+East, 70
+West, 140
+```

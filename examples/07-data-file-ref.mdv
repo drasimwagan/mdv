@@ -1,0 +1,18 @@
+---
+title: Data File Reference
+theme: minimal
+data:
+  sales: ./data/sales.csv
+---
+
+# Using a Named Dataset
+
+The dataset is declared once in front-matter and reused across blocks.
+
+```chart type=line data=sales x=month y=revenue series=region points title="Revenue by region"
+```
+
+Same data, as a table:
+
+```table data=sales
+```

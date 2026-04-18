@@ -1,0 +1,93 @@
+---
+title: Q1 Report — Full Example
+theme: report
+data:
+  sales: ./data/sales.csv
+styles:
+  kpi:
+    background: "#fff"
+    border: "1px solid rgba(0,0,0,0.12)"
+    padding: medium
+    radius: small
+    align: center
+  summary:
+    background: "#faf4e8"
+    padding: large
+    radius: medium
+---
+
+# Q1 Business Review
+
+An end-to-end example combining every v1 feature: front-matter with named
+datasets and named styles, a themed document (`report`), a layout grid, all
+four visualization types, and standard Markdown prose.
+
+## Headline metrics
+
+::: columns
+
+::: col
+
+::: kpi
+
+### $2.06M
+
+Total Q1 revenue
+
+:::
+
+:::
+
+::: col
+
+::: kpi
+
+### +14%
+
+YoY growth
+
+:::
+
+:::
+
+:::
+
+## Revenue trend
+
+```chart type=line data=sales x=month y=revenue series=region points title="Monthly revenue by region"
+```
+
+## Regional breakdown
+
+```chart type=bar x=region y=total title="Total Q1 revenue by region"
+region, total
+North, 595
+South, 475
+East, 360
+West, 635
+```
+
+## Product mix
+
+```chart type=pie label=product value=share donut title="Product mix"
+product, share
+Alpha, 45
+Beta, 30
+Gamma, 15
+Delta, 10
+```
+
+## Raw data
+
+```table data=sales
+```
+
+## Executive summary
+
+::: summary
+
+Q1 came in **on plan** across all four regions. Northern and western territories
+led growth; Eastern region requires attention. The product mix remained stable,
+with *Alpha* continuing to dominate at 45% share.
+
+:::
