@@ -1,0 +1,80 @@
+{
+  "name": "mdv-vscode",
+  "displayName": "MDV — Markdown Data & Visualization Preview",
+  "description": "Live preview for .mdv files: charts, tables, stats, named styles, themes, TOC.",
+  "version": "0.1.0",
+  "publisher": "mdv",
+  "private": true,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Visualization", "Other"],
+  "activationEvents": [
+    "onLanguage:mdv",
+    "onCommand:mdv.openPreview",
+    "onCommand:mdv.openPreviewToSide"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "mdv",
+        "aliases": ["MDV", "Markdown Data & Visualization"],
+        "extensions": [".mdv"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mdv",
+        "scopeName": "source.mdv",
+        "path": "./syntaxes/mdv.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "mdv.openPreview",
+        "title": "MDV: Open Preview",
+        "category": "MDV",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "mdv.openPreviewToSide",
+        "title": "MDV: Open Preview to the Side",
+        "category": "MDV",
+        "icon": "$(open-preview)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceExtname == .mdv",
+          "command": "mdv.openPreviewToSide",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        { "command": "mdv.openPreview", "when": "resourceExtname == .mdv" },
+        { "command": "mdv.openPreviewToSide", "when": "resourceExtname == .mdv" }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "mdv.openPreviewToSide",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "editorLangId == mdv"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "@mdv/core": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0"
+  }
+}
