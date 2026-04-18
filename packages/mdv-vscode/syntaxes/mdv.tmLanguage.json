@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "MDV",
+  "scopeName": "source.mdv",
+  "patterns": [
+    { "include": "#frontmatter" },
+    { "include": "#directive" },
+    { "include": "#mdv-fence" },
+    { "include": "text.html.markdown" }
+  ],
+  "repository": {
+    "frontmatter": {
+      "begin": "\\A---\\s*$",
+      "end": "^---\\s*$",
+      "name": "meta.embedded.block.frontmatter.mdv",
+      "patterns": [{ "include": "source.yaml" }]
+    },
+    "directive": {
+      "match": "^:::\\s*(.*)$",
+      "captures": {
+        "0": { "name": "keyword.control.directive.mdv" },
+        "1": { "name": "entity.name.tag.mdv" }
+      }
+    },
+    "mdv-fence": {
+      "begin": "^(```)(chart|table|stat)\\b(.*)$",
+      "end": "^```\\s*$",
+      "beginCaptures": {
+        "1": { "name": "markup.fenced.mdv" },
+        "2": { "name": "keyword.control.mdv" },
+        "3": { "name": "meta.info.mdv" }
+      },
+      "name": "markup.fenced.data.mdv"
+    }
+  }
+}
