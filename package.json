@@ -1,0 +1,27 @@
+{
+  "name": "mdv",
+  "private": true,
+  "type": "module",
+  "description": "MDV — a Markdown-superset format for documents, dashboards, and slides with embedded data and visualizations.",
+  "license": "MIT",
+  "author": "Asim Wagan <dr.asim@aksiq.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drasimwagan/mdv.git"
+  },
+  "homepage": "https://github.com/drasimwagan/mdv#readme",
+  "bugs": "https://github.com/drasimwagan/mdv/issues",
+  "workspaces": ["packages/*"],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0"
+  }
+}
