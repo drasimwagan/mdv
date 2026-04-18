@@ -64,7 +64,7 @@ See [docs/getting-started.md](docs/getting-started.md) for a walkthrough.
 - [Themes & styles](docs/themes-and-styles.md) — built-in themes and how to define named styles.
 - [CLI](docs/cli.md) — `render`, `preview`, `export --pdf`.
 - [VS Code extension](docs/vscode.md) — side-by-side live preview.
-- [Format design spec](docs/superpowers/specs/2026-04-18-mdv-format-design.md) — authoritative specification.
+- [Publishing the VS Code extension](docs/publishing-vscode-extension.md) — Marketplace workflow.
 
 ## Examples
 

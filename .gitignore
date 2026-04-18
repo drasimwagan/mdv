@@ -35,3 +35,7 @@ Thumbs.db
 
 # Packaged extensions
 *.vsix
+
+# Private / internal docs — planning specs, implementation plans, launch drafts
+docs/superpowers/
+docs/launch/

@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**MDV** — a Markdown-superset format for authoring documents, dashboards, and slides with embedded data and visualizations. Currently in the **design / pre-implementation** stage. No code exists yet.
+**MDV** — a Markdown-superset format for authoring documents, dashboards, and slides with embedded data and visualizations.
 
-Authoritative design spec: [docs/superpowers/specs/2026-04-18-mdv-format-design.md](docs/superpowers/specs/2026-04-18-mdv-format-design.md). Read this before working on the codebase — all decisions below are elaborated there.
+Authoritative design spec and implementation plan live under `docs/superpowers/` locally (gitignored, not published). Read them before making non-trivial changes — all decisions below are elaborated there.
 
 ## Core Product Decisions (locked in during brainstorming, 2026-04-18)
 

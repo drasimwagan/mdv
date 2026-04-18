@@ -18,11 +18,6 @@ Start here if you want to write `.mdv` documents.
 7. [VS Code extension](vscode.md) — live preview inside the editor.
 8. [Publishing the VS Code extension](publishing-vscode-extension.md) — Marketplace workflow, PAT setup, CI release.
 
-## Design & reference
-
-- [Format design spec](superpowers/specs/2026-04-18-mdv-format-design.md) — authoritative specification.
-- [v1 implementation plan](superpowers/plans/2026-04-18-mdv-v1-implementation.md) — the build plan.
-
 ## Key principles
 
 - **CommonMark superset.** Every `.md` file parses as `.mdv`. New features degrade gracefully in plain Markdown viewers.
