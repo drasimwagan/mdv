@@ -1,0 +1,88 @@
+name: Release VS Code Extension
+
+# Builds the .vsix for any tag of the form `vscode-v*` (e.g. `vscode-v0.1.1`)
+# and attaches it to a GitHub Release. You download the .vsix and publish it
+# to the Marketplace yourself (vsce publish -i <path> or the web upload form).
+
+on:
+  push:
+    tags: ["vscode-v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag or version suffix to release (e.g. 0.1.1). Creates tag vscode-v<input> if absent."
+        required: true
+        default: "0.1.1"
+
+permissions:
+  contents: write   # needed to create the release
+
+jobs:
+  release:
+    name: Build + release .vsix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
+
+      - name: Build @mdv/core
+        run: npm run build --workspace @mdv/core
+
+      - name: Build + package extension
+        working-directory: packages/mdv-vscode
+        run: |
+          npm run build
+          npx vsce package --no-dependencies
+
+      - name: Read version
+        id: version
+        working-directory: packages/mdv-vscode
+        run: echo "v=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=vscode-v${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create tag (workflow_dispatch only)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "${{ steps.tag.outputs.name }}" || echo "tag already exists"
+          git push origin "${{ steps.tag.outputs.name }}" || echo "tag already pushed"
+
+      - name: Create GitHub Release + upload .vsix
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.name }}
+          name: "VS Code extension v${{ steps.version.outputs.v }}"
+          body: |
+            VS Code extension release **v${{ steps.version.outputs.v }}**.
+
+            Download `mdv-vscode-${{ steps.version.outputs.v }}.vsix` below, then
+            either:
+
+            1. Install locally — `code --install-extension mdv-vscode-${{ steps.version.outputs.v }}.vsix`, or
+            2. Publish to the Marketplace — `npx vsce publish --packagePath mdv-vscode-${{ steps.version.outputs.v }}.vsix`
+               (requires `vsce login drasimwagan` once, using a PAT with Marketplace → Manage scope).
+
+            See [CHANGELOG](https://github.com/drasimwagan/mdv/blob/main/packages/mdv-vscode/CHANGELOG.md) for what's in this version.
+          files: packages/mdv-vscode/*.vsix
+          fail_on_unmatched_files: true
