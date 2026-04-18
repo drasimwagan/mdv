@@ -1,0 +1,26 @@
+---
+title: Pie & Donut Charts
+theme: minimal
+---
+
+# Market Share
+
+Standard pie chart:
+
+```chart type=pie label=product value=share title="Market share"
+product, share
+Alpha, 45
+Beta, 30
+Gamma, 15
+Delta, 10
+```
+
+Donut variant (add `donut`):
+
+```chart type=pie label=product value=share donut title="Market share (donut)"
+product, share
+Alpha, 45
+Beta, 30
+Gamma, 15
+Delta, 10
+```

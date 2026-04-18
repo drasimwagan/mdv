@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Line Chart with Series</title>
+<style>.mdv-doc { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 16px; color: #222; background: #fff; max-width: 860px; margin: 2em auto; padding: 2em 1em; line-height: 1.55; }
+body { background: #fff; margin: 0; }
+.mdv-doc h1, .mdv-doc h2, .mdv-doc h3, .mdv-doc h4 { color: #111; line-height: 1.25; }
+.mdv-doc a { color: #2d6cdf; }
+.mdv-doc code { background: rgba(0,0,0,0.06); padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.92em; }
+.mdv-doc pre { background: rgba(0,0,0,0.06); padding: 12px; border-radius: 2px; overflow-x: auto; }
+.mdv-doc blockquote { border-left: 3px solid #2d6cdf; margin: 1em 0; padding: 0.2em 1em; opacity: 0.85; }
+.mdv-doc table.mdv-table, .mdv-doc table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+.mdv-doc th, .mdv-doc td { padding: 0.5em 0.8em; border-bottom: 1px solid rgba(0,0,0,0.1); text-align: left; }
+.mdv-doc th { font-weight: 600; border-bottom: 2px solid #2d6cdf; }
+.mdv-doc .mdv-columns { display: grid; gap: 24px; grid-template-columns: 1fr 1fr; margin: 1em 0; }
+.mdv-doc .mdv-error { background: #ffecec; border-left: 4px solid #c64a4a; padding: 12px; margin: 1em 0; font-family: monospace; font-size: 0.9em; color: #5a1a1a; border-radius: 2px; }
+.mdv-doc .mdv-warning { background: #fff8e0; border-left: 4px solid #e0b84a; padding: 4px 12px; margin: 0.5em 0; font-size: 0.9em; color: #5a4416; border-radius: 2px; }
+.mdv-doc .mdv-chart { margin: 1.2em 0; }
+.mdv-doc .mdv-chart-title { font-weight: 600; margin-bottom: 0.5em; font-size: 1.05em; }
+.mdv-doc .mdv-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 1em 0; }
+.mdv-doc .mdv-stat-card { background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.08); border-left: 4px solid #2d6cdf; padding: 12px; border-radius: 2px; }
+.mdv-doc .mdv-stat-value { font-size: 1.8em; font-weight: 700; color: #111; line-height: 1.1; }
+.mdv-doc .mdv-stat-label { font-size: 0.9em; opacity: 0.75; margin-top: 0.25em; }
+.mdv-doc .mdv-stat-delta { font-size: 0.85em; margin-top: 0.4em; font-weight: 600; }
+.mdv-doc .mdv-toc { background: rgba(0,0,0,0.03); padding: 12px 24px; border-radius: 2px; margin: 1em 0; }
+.mdv-doc .mdv-toc-title { font-weight: 600; margin-bottom: 0.4em; }
+.mdv-doc .mdv-toc ul { list-style: none; padding-left: 0; margin: 0; }
+.mdv-doc .mdv-toc li { padding: 0.15em 0; }
+.mdv-doc .mdv-toc li.mdv-toc-sub { padding-left: 1.5em; font-size: 0.95em; opacity: 0.85; }</style>
+</head>
+<body>
+<article class="mdv-doc">
+<h1 id="monthly-revenue-by-region">Monthly Revenue by Region</h1>
+<p>Line chart grouped by region via <code>series=</code>.</p>
+
+<figure class="mdv-chart"><div class="mdv-chart-title">Revenue trend</div><svg viewBox="0 0 720 360" width="100%" xmlns="http://www.w3.org/2000/svg" role="img"><line x1="70" x2="610" y1="310.0" y2="310.0" stroke="rgba(0,0,0,0.08)"/><text x="64" y="314.0" text-anchor="end" font-size="11" fill="#222">0</text><line x1="70" x2="610" y1="240.0" y2="240.0" stroke="rgba(0,0,0,0.08)"/><text x="64" y="244.0" text-anchor="end" font-size="11" fill="#222">50</text><line x1="70" x2="610" y1="170.0" y2="170.0" stroke="rgba(0,0,0,0.08)"/><text x="64" y="174.0" text-anchor="end" font-size="11" fill="#222">100</text><line x1="70" x2="610" y1="100.0" y2="100.0" stroke="rgba(0,0,0,0.08)"/><text x="64" y="104.0" text-anchor="end" font-size="11" fill="#222">150</text><line x1="70" x2="610" y1="30.0" y2="30.0" stroke="rgba(0,0,0,0.08)"/><text x="64" y="34.0" text-anchor="end" font-size="11" fill="#222">200</text><polyline fill="none" stroke="#2d6cdf" stroke-width="2" points="70.0,142.0 250.0,114.0 430.0,86.0 610.0,65.0"/><circle cx="70.0" cy="142.0" r="3" fill="#2d6cdf"><title>Jan: 120</title></circle><circle cx="250.0" cy="114.0" r="3" fill="#2d6cdf"><title>Feb: 140</title></circle><circle cx="430.0" cy="86.0" r="3" fill="#2d6cdf"><title>Mar: 160</title></circle><circle cx="610.0" cy="65.0" r="3" fill="#2d6cdf"><title>Apr: 175</title></circle><polyline fill="none" stroke="#e0b84a" stroke-width="2" points="70.0,184.0 250.0,156.0 430.0,128.0 610.0,107.0"/><circle cx="70.0" cy="184.0" r="3" fill="#e0b84a"><title>Jan: 90</title></circle><circle cx="250.0" cy="156.0" r="3" fill="#e0b84a"><title>Feb: 110</title></circle><circle cx="430.0" cy="128.0" r="3" fill="#e0b84a"><title>Mar: 130</title></circle><circle cx="610.0" cy="107.0" r="3" fill="#e0b84a"><title>Apr: 145</title></circle><text x="70.0" y="328" text-anchor="middle" font-size="11" fill="#222">Jan</text><text x="250.0" y="328" text-anchor="middle" font-size="11" fill="#222">Feb</text><text x="430.0" y="328" text-anchor="middle" font-size="11" fill="#222">Mar</text><text x="610.0" y="328" text-anchor="middle" font-size="11" fill="#222">Apr</text><g transform="translate(620,34)"><rect width="12" height="12" fill="#2d6cdf"/><text x="18" y="10" font-size="12" fill="#222">North</text></g><g transform="translate(620,52)"><rect width="12" height="12" fill="#e0b84a"/><text x="18" y="10" font-size="12" fill="#222">South</text></g></svg></figure>
+</article>
+</body>
+</html>

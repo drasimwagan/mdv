@@ -1,0 +1,33 @@
+---
+title: Named Styles
+theme: minimal
+styles:
+  callout:
+    background: "#fff6e0"
+    border: "1px solid #e0b84a"
+    padding: medium
+    radius: medium
+  highlight:
+    background: "#e8f1ff"
+    padding: small
+    radius: small
+---
+
+# Named Styles
+
+Named styles live in front-matter. Authors apply them with `:::` containers.
+
+::: callout
+
+**Important:** This is rendered with the `callout` style — a warm background,
+warm border, and comfortable padding. No CSS selectors; just a name.
+
+:::
+
+Some prose between blocks.
+
+::: highlight
+
+A different named style with a cool background and tighter padding.
+
+:::

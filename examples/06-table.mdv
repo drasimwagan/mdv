@@ -1,0 +1,14 @@
+---
+title: Table block
+theme: minimal
+---
+
+# Sales Summary
+
+```table
+region, q1, q2, q3, q4, total
+North, 120, 140, 160, 175, 595
+South, 90, 110, 130, 145, 475
+East, 70, 85, 95, 110, 360
+West, 140, 150, 165, 180, 635
+```
