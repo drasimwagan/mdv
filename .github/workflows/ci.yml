@@ -28,8 +28,14 @@ jobs:
         env:
           PUPPETEER_SKIP_DOWNLOAD: "true"
 
-      - name: Build
-        run: npm run build --workspaces
+      # Build in explicit order: @mdv/core first, since @mdv/cli and mdv-vscode depend on it.
+      - name: Build core
+        run: npm run build --workspace @mdv/core
+
+      - name: Build dependents
+        run: |
+          npm run build --workspace @mdv/cli
+          npm run build --workspace mdv-vscode
 
       - name: Test
         run: npm test --workspace @mdv/core
