@@ -85,46 +85,41 @@ Before `vsce publish`, confirm:
 - [ ] `npm run package` prints **no warnings** (or only the "file is large" warning — that's fine).
 - [ ] Locally installing the `.vsix` and opening an `.mdv` file works.
 
-## Automated publish via GitHub Actions (optional)
+## Automated build + GitHub Release (what this repo uses)
 
-Add the `VSCE_PAT` secret to the repo, then use this workflow:
+The repo ships [`.github/workflows/release-vscode-extension.yml`](../.github/workflows/release-vscode-extension.yml), which builds the `.vsix` and attaches it to a GitHub Release. It does **not** auto-publish to the Marketplace — you download the `.vsix` and publish it yourself. This keeps the Marketplace PAT off of GitHub.
 
-```yaml
-# .github/workflows/publish-vscode.yml
-name: Publish VS Code Extension
+Two ways to trigger it:
 
-on:
-  push:
-    tags: ["v*"]
-  workflow_dispatch:
-
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-        env:
-          PUPPETEER_SKIP_DOWNLOAD: "true"
-      - run: npm run build --workspace @mdv/core
-      - run: npm run build --workspace mdv-vscode
-      - name: Publish
-        working-directory: packages/mdv-vscode
-        run: npx vsce publish --no-dependencies -p $VSCE_PAT
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-```
-
-Tag a release and push to trigger:
+### A. Push a tag
 
 ```bash
-git tag v0.1.0
-git push --tags
+# Bump version in packages/mdv-vscode/package.json first, commit, then:
+git tag vscode-v0.1.1
+git push origin vscode-v0.1.1
 ```
+
+The workflow runs and creates a release at
+`https://github.com/drasimwagan/mdv/releases/tag/vscode-v0.1.1` with the `.vsix` attached.
+
+### B. Manual run (no tag needed)
+
+Go to **Actions → Release VS Code Extension → Run workflow**. Enter the
+version suffix (e.g. `0.1.1`). The workflow creates the tag and the release
+for you.
+
+### After the release exists
+
+1. Download `mdv-vscode-0.1.1.vsix` from the release page.
+2. Publish it to the Marketplace:
+
+   ```bash
+   npx vsce publish --packagePath mdv-vscode-0.1.1.vsix
+   ```
+
+   (Run `npx vsce login drasimwagan` once with your PAT. See [Prerequisites](#prerequisites-one-time) above.)
+
+Or upload through the web form at <https://marketplace.visualstudio.com/manage/publishers/drasimwagan>.
 
 ## Troubleshooting
 
