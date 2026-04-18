@@ -3,12 +3,36 @@
   "displayName": "MDV — Markdown Data & Visualization Preview",
   "description": "Live preview for .mdv files: charts, tables, stats, named styles, themes, TOC.",
   "version": "0.1.0",
-  "publisher": "mdv",
-  "private": true,
+  "publisher": "drasimwagan",
+  "license": "MIT",
+  "icon": "assets/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drasimwagan/mdv.git",
+    "directory": "packages/mdv-vscode"
+  },
+  "bugs": "https://github.com/drasimwagan/mdv/issues",
+  "homepage": "https://github.com/drasimwagan/mdv#readme",
+  "keywords": [
+    "markdown",
+    "mdv",
+    "data visualization",
+    "charts",
+    "dashboard",
+    "report",
+    "preview"
+  ],
+  "galleryBanner": {
+    "color": "#1e1e2a",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Visualization", "Other"],
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
   "activationEvents": [
     "onLanguage:mdv",
     "onCommand:mdv.openPreview",
@@ -19,8 +43,13 @@
     "languages": [
       {
         "id": "mdv",
-        "aliases": ["MDV", "Markdown Data & Visualization"],
-        "extensions": [".mdv"],
+        "aliases": [
+          "MDV",
+          "Markdown Data & Visualization"
+        ],
+        "extensions": [
+          ".mdv"
+        ],
         "configuration": "./language-configuration.json"
       }
     ],
@@ -54,8 +83,14 @@
         }
       ],
       "commandPalette": [
-        { "command": "mdv.openPreview", "when": "resourceExtname == .mdv" },
-        { "command": "mdv.openPreviewToSide", "when": "resourceExtname == .mdv" }
+        {
+          "command": "mdv.openPreview",
+          "when": "resourceExtname == .mdv"
+        },
+        {
+          "command": "mdv.openPreviewToSide",
+          "when": "resourceExtname == .mdv"
+        }
       ]
     },
     "keybindings": [
@@ -68,13 +103,16 @@
     ]
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "package": "vsce package --no-dependencies"
-  },
-  "dependencies": {
-    "@mdv/core": "0.1.0"
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "npm run typecheck && node esbuild.config.mjs",
+    "vscode:prepublish": "npm run build",
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0"
+    "@mdv/core": "0.1.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.9.1",
+    "esbuild": "^0.24.2"
   }
 }

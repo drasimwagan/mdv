@@ -1,0 +1,26 @@
+# Sources (bundled into dist/extension.js)
+src/**
+tsconfig.json
+esbuild.config.mjs
+
+# Dev configs
+.vscode/**
+.vscode-test/**
+.github/**
+
+# Tests + node deps
+test/**
+**/*.test.ts
+node_modules/**
+
+# Asset helpers (icon.png is what ships)
+assets/build-icon.mjs
+assets/icon.svg
+
+# Misc
+.gitignore
+.editorconfig
+*.tsbuildinfo
+.DS_Store
+**/*.map
+*.vsix
