@@ -2,7 +2,9 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs/promises";
 
-// @mdv/core is ESM; VS Code extensions run as CommonJS. Use dynamic import.
+// @mdv/core is ESM; we're compiled to CJS. Use dynamic import — esbuild
+// inlines it at bundle time; at dev time (plain tsc + F5) Node 20+ resolves
+// the workspace symlink as ESM and this just works.
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 type MdvCore = typeof import("@mdv/core", { with: { "resolution-mode": "import" } });
 let corePromise: Promise<MdvCore> | null = null;

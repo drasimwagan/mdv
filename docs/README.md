@@ -16,6 +16,7 @@ Start here if you want to write `.mdv` documents.
 
 6. [CLI](cli.md) — `mdv render`, `mdv preview`, `mdv export --pdf`.
 7. [VS Code extension](vscode.md) — live preview inside the editor.
+8. [Publishing the VS Code extension](publishing-vscode-extension.md) — Marketplace workflow, PAT setup, CI release.
 
 ## Design & reference
 
