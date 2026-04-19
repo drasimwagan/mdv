@@ -64,8 +64,9 @@ export async function previewCommand(file: string, port: number): Promise<void> 
       return;
     }
     const safe = path.normalize(pathname).replace(/^([/\\])+/, "");
-    const full = path.join(baseDir, safe);
-    if (!full.startsWith(baseDir)) {
+    const full = path.resolve(baseDir, safe);
+    const rel = path.relative(baseDir, full);
+    if (rel.startsWith("..") || path.isAbsolute(rel)) {
       res.writeHead(403);
       res.end("forbidden");
       return;

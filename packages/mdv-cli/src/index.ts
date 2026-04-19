@@ -28,9 +28,18 @@ async function main() {
     const file = rest[0];
     if (!file || !rest.includes("--pdf")) usage();
     const outIdx = rest.indexOf("--out");
+    if (outIdx >= 0 && !rest[outIdx + 1]) {
+      console.error("Error: --out requires a path argument");
+      process.exit(1);
+    }
     const out = outIdx >= 0 ? rest[outIdx + 1] : file.replace(/\.mdv$/i, "") + ".pdf";
     const psIdx = rest.indexOf("--page-size");
-    const ps = (psIdx >= 0 ? rest[psIdx + 1] : "letter") as "letter" | "a4";
+    const rawPs = psIdx >= 0 ? rest[psIdx + 1] : "letter";
+    if (rawPs !== "letter" && rawPs !== "a4") {
+      console.error("Error: --page-size must be 'letter' or 'a4'");
+      process.exit(1);
+    }
+    const ps = rawPs;
     try {
       await exportPdfCommand(file, out, ps);
     } catch (e) {
@@ -53,6 +62,10 @@ async function main() {
     const file = rest[0];
     if (!file) usage();
     const outIdx = rest.indexOf("--out");
+    if (outIdx >= 0 && !rest[outIdx + 1]) {
+      console.error("Error: --out requires a path argument");
+      process.exit(1);
+    }
     const out = outIdx >= 0 ? rest[outIdx + 1] : file.replace(/\.mdv$/i, "") + ".html";
     try {
       const html = await renderFile(file);
