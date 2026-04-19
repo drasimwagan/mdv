@@ -58,9 +58,10 @@ export function parseJson(src: string): Row[] {
 }
 
 export async function loadDataset(relPath: string, baseDir: string): Promise<Row[]> {
-  const full = path.resolve(baseDir, relPath);
   const normalizedBase = path.resolve(baseDir);
-  if (!full.startsWith(normalizedBase + path.sep) && full !== normalizedBase) {
+  const full = path.resolve(normalizedBase, relPath);
+  const rel = path.relative(normalizedBase, full);
+  if (rel.startsWith("..") || path.isAbsolute(rel)) {
     throw new Error(`Data file path escapes base directory: ${relPath}`);
   }
   const src = await fs.readFile(full, "utf8");

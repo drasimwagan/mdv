@@ -21,7 +21,8 @@ export async function exportPdfCommand(file: string, outPath: string, pageSize: 
       return;
     }
     const full = path.resolve(baseDir, decodeURIComponent((req.url || "").replace(/^\/+/, "")));
-    if (!full.startsWith(baseDir + path.sep) && full !== baseDir) { res.writeHead(403); res.end(); return; }
+    const rel = path.relative(baseDir, full);
+    if (rel.startsWith("..") || path.isAbsolute(rel)) { res.writeHead(403); res.end(); return; }
     fsSync.readFile(full, (err, data) => {
       if (err) { res.writeHead(404); res.end(); return; }
       res.writeHead(200);
