@@ -20,8 +20,8 @@ export async function exportPdfCommand(file: string, outPath: string, pageSize: 
       res.end(printableHtml);
       return;
     }
-    const full = path.join(baseDir, decodeURIComponent((req.url || "").replace(/^\/+/, "")));
-    if (!full.startsWith(baseDir)) { res.writeHead(403); res.end(); return; }
+    const full = path.resolve(baseDir, decodeURIComponent((req.url || "").replace(/^\/+/, "")));
+    if (!full.startsWith(baseDir + path.sep) && full !== baseDir) { res.writeHead(403); res.end(); return; }
     fsSync.readFile(full, (err, data) => {
       if (err) { res.writeHead(404); res.end(); return; }
       res.writeHead(200);

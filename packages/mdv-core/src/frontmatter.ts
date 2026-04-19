@@ -12,7 +12,7 @@ export function extractFrontmatter(source: string): FrontmatterResult {
   if (!m) return { data: {}, body: source };
   let data: Record<string, unknown>;
   try {
-    const parsed = yaml.load(m[1]);
+    const parsed = yaml.load(m[1], { schema: yaml.DEFAULT_SAFE_SCHEMA });
     data = parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
   } catch (e) {
     throw new Error(`Invalid front-matter YAML: ${(e as Error).message}`);
