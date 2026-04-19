@@ -72,4 +72,3 @@ See [docs/getting-started.md](docs/getting-started.md) for a walkthrough.
 
 ## Status
 
-v1, pre-release. Runs on Node ≥ 20. See [docs/superpowers/specs/2026-04-18-mdv-format-design.md](docs/superpowers/specs/2026-04-18-mdv-format-design.md) for scope, non-goals, and roadmap.
