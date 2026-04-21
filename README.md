@@ -1,8 +1,8 @@
 # MDV — Markdown Data & Visualization
 
-> Write documents, dashboards, and slides in a Markdown superset. Add charts, KPI cards, tables, and styled regions with nothing more complicated than fenced code blocks and named styles.
+> Write reports, dashboards, and slide decks in a single Markdown-native workflow, then export to self-contained HTML or PDF — no rebuilding the same content across a doc tool, a BI tool, and a deck tool.
 
-`.mdv` is **strict CommonMark plus four additions**:
+Charts, KPI cards, tables, and styled regions come from nothing more complicated than fenced code blocks and named styles. `.mdv` is **strict CommonMark plus four additions**:
 
 1. **YAML front-matter** for title, theme, named styles, and dataset references.
 2. **Fenced blocks** for data/visuals: `` ```chart type=bar x=region y=sales ``.
