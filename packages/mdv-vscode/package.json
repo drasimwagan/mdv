@@ -113,6 +113,6 @@
     "@mdv/core": "0.1.0",
     "@types/vscode": "^1.85.0",
     "@vscode/vsce": "^3.9.1",
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.28.0"
   }
 }
