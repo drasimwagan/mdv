@@ -10,6 +10,6 @@
   },
   "dependencies": {
     "@mdv/core": "0.1.0",
-    "puppeteer": "^24.41.0"
+    "puppeteer": "^24.43.0"
   }
 }
