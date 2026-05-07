@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<link rel="stylesheet" href="{{base}}assets/site.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{base}}index.html">
+    <span class="brand-mark">MDV</span>
+    <span class="brand-tag">Markdown Data &amp; Visualization</span>
+  </a>
+  <nav class="topnav">
+    <a class="{{active_home}}" href="{{base}}index.html">Home</a>
+    <a class="{{active_examples}}" href="{{base}}examples.html">Examples</a>
+    <a class="{{active_docs}}" href="{{base}}docs.html">Docs</a>
+    <a href="https://github.com/drasimwagan/mdv" target="_blank" rel="noopener">GitHub ↗</a>
+  </nav>
+</header>
+<main class="main">
+{{body}}
+</main>
+<footer class="foot">
+  <p>MDV is open source under the MIT license. <a href="https://github.com/drasimwagan/mdv">Contribute on GitHub</a>.</p>
+</footer>
+</body>
+</html>

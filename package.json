@@ -17,6 +17,7 @@
   },
   "scripts": {
     "build": "npm run build --workspace @mdv/core && npm run build --workspace @mdv/cli && npm run build --workspace mdv-vscode",
+    "build:site": "node scripts/build-site.mjs",
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {

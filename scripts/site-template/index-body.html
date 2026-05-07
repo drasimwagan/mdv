@@ -1,0 +1,63 @@
+<section class="hero">
+  <h1>Reports, dashboards, slide decks — one Markdown source.</h1>
+  <p class="lead">Write reports, dashboards, and slide decks in a single Markdown-native workflow, then export to self-contained HTML or PDF — no rebuilding the same content across a doc tool, a BI tool, and a deck tool.</p>
+  <div class="cta-row">
+    <a class="btn primary" href="examples.html">See examples</a>
+    <a class="btn" href="docs/getting-started.html">Get started</a>
+  </div>
+</section>
+
+<section class="syntax-row">
+  <div class="syntax-text">
+    <h2>Strict CommonMark, plus four additions.</h2>
+    <p>Every valid <code>.md</code> file is a valid <code>.mdv</code> file. The four additions are the only thing standing between a plain document and a charted, themed, multi-page report.</p>
+    <ol>
+      <li><strong>YAML front-matter</strong> for title, theme, named styles, and dataset references.</li>
+      <li><strong>Fenced blocks</strong> for data and visuals: <code>```chart type=bar x=region y=sales</code>.</li>
+      <li><strong><code>:::</code> containers</strong> for styled regions and layout: <code>::: callout</code>, <code>::: columns</code>.</li>
+      <li><strong><code>::: toc</code></strong> for an auto-generated table of contents.</li>
+    </ol>
+  </div>
+  <div class="syntax-code">
+<pre><code>---
+title: Q1 Report
+theme: report
+data:
+  sales: ./data/sales.csv
+---
+
+::: toc
+:::
+
+# Q1 Results
+
+```stat
+label, value, delta
+Total revenue, $2.06M, +14%
+New customers, 1238, +8%
+```
+
+```chart type=line data=sales x=month y=revenue
+       series=region yFormat=currency
+       title="Monthly revenue"
+```</code></pre>
+  </div>
+</section>
+
+<section class="quick-cards">
+  <a class="card" href="examples.html">
+    <h3>Examples</h3>
+    <p>Ten rendered <code>.mdv</code> files showing every feature — from plain Markdown through a full quarterly report with multi-series charts and named styles.</p>
+    <div class="card-foot"><span class="meta">Browse →</span></div>
+  </a>
+  <a class="card" href="docs.html">
+    <h3>Documentation</h3>
+    <p>Syntax reference, charts, data, themes, and the CLI. The reference is itself rendered with MDV — eat your own dogfood.</p>
+    <div class="card-foot"><span class="meta">Read →</span></div>
+  </a>
+  <a class="card" href="https://github.com/drasimwagan/mdv#getting-started">
+    <h3>Install</h3>
+    <p>Clone the repo, run <code>npm install</code>, render an example. Live preview with auto-reload via <code>mdv preview</code>, or use the VS Code extension.</p>
+    <div class="card-foot"><span class="meta">Get the code →</span></div>
+  </a>
+</section>
