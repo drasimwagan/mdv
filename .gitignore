@@ -30,6 +30,7 @@ Thumbs.db
 # Rendered output — keep example outputs, ignore everything else
 *.html
 !examples/**/*.html
+!scripts/site-template/*.html
 *.pdf
 !examples/**/*.pdf
 
@@ -39,3 +40,6 @@ Thumbs.db
 # Private / internal docs — planning specs, implementation plans, launch drafts
 docs/superpowers/
 docs/launch/
+
+# Generated site (built by scripts/build-site.mjs, deployed via Pages workflow)
+site/
