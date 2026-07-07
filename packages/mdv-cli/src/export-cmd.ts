@@ -38,6 +38,7 @@ export async function exportPdfCommand(file: string, outPath: string, pageSize: 
     const page = await browser.newPage();
     await page.goto(`http://localhost:${port}/`, { waitUntil: "networkidle0" });
     const pdf = await page.pdf({ format: pageSize === "a4" ? "A4" : "Letter", printBackground: true });
+    await fs.mkdir(path.dirname(path.resolve(outPath)), { recursive: true });
     await fs.writeFile(outPath, pdf);
   } finally {
     await browser.close();

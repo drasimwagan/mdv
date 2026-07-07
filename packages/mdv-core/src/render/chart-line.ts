@@ -1,14 +1,20 @@
 import type { ChartMeta } from "../ast.js";
 import type { Theme } from "../themes.js";
-import { escapeHtml, niceTicks, formatNumber, parseFormat } from "./svg-util.js";
+import { escapeHtml, niceTicks, formatNumber, parseFormat, columnSet, numericColumn } from "./svg-util.js";
 
 export function renderLineChart(meta: ChartMeta, theme: Theme): string {
   const xKey = meta.opts.x as string;
   const yKey = meta.opts.y as string;
   const seriesKey = meta.opts.series as string | undefined;
-  if (!xKey || !yKey) return `<div class="mdv-error">Line chart requires x= and y= options</div>`;
+  if (!xKey || !yKey) return errBlock("Line chart requires x= and y= options");
   const rows = meta.data;
-  if (!rows.length) return `<div class="mdv-error">Line chart has no data rows</div>`;
+  if (!rows.length) return errBlock("Line chart has no data rows");
+  const cols = columnSet(rows);
+  if (!cols.has(xKey)) return errBlock(`Line chart: column '${xKey}' not found in data (available: ${[...cols].join(", ")})`);
+  if (!cols.has(yKey)) return errBlock(`Line chart: column '${yKey}' not found in data (available: ${[...cols].join(", ")})`);
+  if (seriesKey && !cols.has(seriesKey)) return errBlock(`Line chart: column '${seriesKey}' not found in data (available: ${[...cols].join(", ")})`);
+  const yNums = numericColumn(rows, yKey);
+  if (typeof yNums === "string") return errBlock(`Line chart: ${yNums}`);
 
   const yfmt = parseFormat(meta.opts.yFormat);
   const W = 720, H = 360, pad = { t: 30, r: 110, b: 50, l: 70 };
@@ -35,9 +41,13 @@ export function renderLineChart(meta: ChartMeta, theme: Theme): string {
     const denom = Math.max(1, xUnique.length - 1);
     return pad.l + (idx / denom) * iw;
   };
-  const allYs = rows.map((r) => Number(r[yKey] ?? 0));
-  const ymin = Math.min(0, ...allYs);
-  const ymax = Math.max(...allYs);
+  // Loop (not spread) so very large datasets cannot overflow the call stack.
+  let ymin = 0, ymax = -Infinity;
+  for (const v of yNums) {
+    if (v < ymin) ymin = v;
+    if (v > ymax) ymax = v;
+  }
+  if (ymax < ymin) ymax = ymin;
   const ticks = niceTicks(ymin, ymax, 5);
   const t0 = ticks[0], tN = ticks[ticks.length - 1];
   const yScale = (v: number) => pad.t + ih - ((v - t0) / (tN - t0)) * ih;
@@ -55,6 +65,13 @@ export function renderLineChart(meta: ChartMeta, theme: Theme): string {
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(" ");
     parts.push(`<polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/>`);
+    // A one-point series has no line segment — draw the point so it is visible.
+    if (groupRows.length === 1 && !showPoints) {
+      const r = groupRows[0];
+      const x = xScale(r[xKey]);
+      const y = yScale(Number(r[yKey] ?? 0));
+      parts.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"><title>${escapeHtml(String(r[xKey]))}: ${formatNumber(Number(r[yKey]), yfmt)}</title></circle>`);
+    }
     if (showPoints) {
       for (const r of groupRows) {
         const x = xScale(r[xKey]);
@@ -80,4 +97,8 @@ export function renderLineChart(meta: ChartMeta, theme: Theme): string {
   const title = (meta.opts.title as string) || "";
   const t = title ? `<div class="mdv-chart-title">${escapeHtml(title)}</div>` : "";
   return `<figure class="mdv-chart">${t}<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">${yTicks}${parts.join("")}${xLabels}${legend.join("")}</svg></figure>`;
+}
+
+function errBlock(msg: string): string {
+  return `<div class="mdv-error">${escapeHtml(msg)}</div>`;
 }

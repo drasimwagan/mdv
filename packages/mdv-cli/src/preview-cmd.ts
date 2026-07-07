@@ -24,6 +24,13 @@ const RELOAD_SNIPPET = `
 export async function previewCommand(file: string, port: number): Promise<void> {
   const absFile = path.resolve(file);
   const baseDir = path.dirname(absFile);
+  // The file itself may not exist yet — the server serves an error page and
+  // live-reloads once it is created. But the directory must exist, or the
+  // recursive watcher below throws.
+  if (!fs.existsSync(baseDir)) {
+    console.error(`Error: directory not found: ${path.dirname(file)}`);
+    process.exit(1);
+  }
   let version = 0;
   let lastError: string | null = null;
 
@@ -45,7 +52,8 @@ export async function previewCommand(file: string, port: number): Promise<void> 
       lastError = null;
       return html.replace(/<\/body>/, RELOAD_SNIPPET + "</body>");
     } catch (e) {
-      lastError = (e as Error).message;
+      const code = (e as NodeJS.ErrnoException).code;
+      lastError = code === "ENOENT" ? `File not found: ${file}` : (e as Error).message;
       return errorPage(lastError, file);
     }
   }
@@ -93,7 +101,19 @@ export async function previewCommand(file: string, port: number): Promise<void> 
     });
   });
 
-  server.listen(port, () => {
+  server.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`Error: port ${port} is already in use — try --port ${port + 1}`);
+    } else {
+      console.error(`Error: could not start preview server: ${err.message}`);
+    }
+    watcher.close();
+    process.exit(1);
+  });
+
+  // Bind to loopback only — the preview server renders local files and must
+  // not be reachable from the rest of the network.
+  server.listen(port, "127.0.0.1", () => {
     console.error(`[mdv] preview of ${file} at http://localhost:${port}`);
     console.error(`[mdv] watching ${baseDir} for changes; Ctrl+C to stop`);
   });

@@ -1,3 +1,39 @@
+import type { Row } from "../data.js";
+
+/** Union of column names across all rows (JSON rows may be ragged). */
+export function columnSet(rows: Row[]): Set<string> {
+  const s = new Set<string>();
+  for (const r of rows) for (const k of Object.keys(r)) s.add(k);
+  return s;
+}
+
+/**
+ * Extract a numeric column. Empty and null cells become 0 (sparse data is
+ * legitimate and rendered as a zero-height mark, as before). A genuinely
+ * non-numeric value — a stray unit suffix like "12%" or a text column — returns
+ * an error string so the caller can show a red banner instead of silently-wrong
+ * output. A misspelled column name is caught earlier by {@link columnSet}.
+ */
+export function numericColumn(rows: Row[], key: string): number[] | string {
+  const out: number[] = [];
+  for (let i = 0; i < rows.length; i++) {
+    const raw = rows[i][key];
+    if (raw == null || raw === "" || (typeof raw === "string" && raw.trim() === "")) {
+      out.push(0);
+      continue;
+    }
+    if (typeof raw === "boolean") {
+      return `column '${key}' has a non-numeric value '${raw}' (data row ${i + 1})`;
+    }
+    const n = typeof raw === "number" ? raw : Number(raw);
+    if (!Number.isFinite(n)) {
+      return `column '${key}' has a non-numeric value '${String(raw)}' (data row ${i + 1})`;
+    }
+    out.push(n);
+  }
+  return out;
+}
+
 export function escapeHtml(s: unknown): string {
   return String(s ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!),

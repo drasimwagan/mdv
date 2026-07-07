@@ -1,6 +1,6 @@
 import type { ChartMeta } from "../ast.js";
 import type { Theme } from "../themes.js";
-import { escapeHtml, niceTicks, formatNumber, parseFormat } from "./svg-util.js";
+import { escapeHtml, niceTicks, formatNumber, parseFormat, columnSet, numericColumn } from "./svg-util.js";
 
 export function renderBarChart(meta: ChartMeta, theme: Theme): string {
   const xKey = meta.opts.x as string;
@@ -8,13 +8,22 @@ export function renderBarChart(meta: ChartMeta, theme: Theme): string {
   if (!xKey || !yKey) return errBlock("Bar chart requires x= and y= options");
   const rows = meta.data;
   if (!rows.length) return errBlock("Bar chart has no data rows");
+  const cols = columnSet(rows);
+  if (!cols.has(xKey)) return errBlock(`Bar chart: column '${xKey}' not found in data (available: ${[...cols].join(", ")})`);
+  if (!cols.has(yKey)) return errBlock(`Bar chart: column '${yKey}' not found in data (available: ${[...cols].join(", ")})`);
   const labels = rows.map((r) => String(r[xKey] ?? ""));
-  const values = rows.map((r) => Number(r[yKey] ?? 0));
+  const values = numericColumn(rows, yKey);
+  if (typeof values === "string") return errBlock(`Bar chart: ${values}`);
   const yfmt = parseFormat(meta.opts.yFormat);
   const W = 720, H = 360, pad = { t: 30, r: 30, b: 50, l: 70 };
   const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
-  const ymin = Math.min(0, ...values);
-  const ymax = Math.max(...values);
+  // The y-domain always includes zero on both sides so bars are anchored to a
+  // zero baseline and all-negative data stays inside the viewBox.
+  let ymin = 0, ymax = 0;
+  for (const v of values) {
+    if (v < ymin) ymin = v;
+    if (v > ymax) ymax = v;
+  }
   const ticks = niceTicks(ymin, ymax, 5);
   const t0 = ticks[0], tN = ticks[ticks.length - 1];
   const yScale = (v: number) => pad.t + ih - ((v - t0) / (tN - t0)) * ih;

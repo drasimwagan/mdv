@@ -30,7 +30,7 @@ export function renderDocument(doc: MdvDoc): string {
   const title = (doc.frontmatter.title as string) || "MDV Document";
 
   const themeWarnings: string[] = [];
-  if (typeof themeName === "string" && !THEMES[themeName]) {
+  if (typeof themeName === "string" && !Object.hasOwn(THEMES, themeName)) {
     themeWarnings.push(`Unknown theme '${themeName}', falling back to '${theme.name}'`);
   }
   const { css: stylesCss, warnings: styleWarnings } = compileStyles(
@@ -40,6 +40,12 @@ export function renderDocument(doc: MdvDoc): string {
   const allWarnings = [...themeWarnings, ...styleWarnings];
 
   const body: string[] = [];
+  // Fatal errors render as a top-of-doc banner (spec §6); the rest of the doc still renders.
+  for (const tok of doc.tokens) {
+    if (tok.kind === "error" && tok.meta.severity === "fatal") {
+      body.push(`<div class="mdv-error mdv-fatal">${escapeHtml(tok.meta.message)}</div>`);
+    }
+  }
   for (const w of allWarnings) body.push(`<div class="mdv-warning">${escapeHtml(w)}</div>`);
 
   // Collect headings for optional TOC.
@@ -86,21 +92,24 @@ export function renderDocument(doc: MdvDoc): string {
       continue;
     }
     flushMd();
-    if (tok.kind === "toc") {
-      body.push(renderToc(headings));
+    // Per-block guard: a failing block renders an inline error banner and
+    // never takes down the rest of the document.
+    if (tok.kind === "toc" || tok.kind === "stat" || tok.kind === "chart" || tok.kind === "table") {
+      try {
+        if (tok.kind === "toc") body.push(renderToc(headings));
+        else if (tok.kind === "stat") body.push(renderStatBlock(tok.meta, theme));
+        else if (tok.kind === "chart") {
+          if (tok.meta.type === "bar") body.push(renderBarChart(tok.meta, theme));
+          else if (tok.meta.type === "line") body.push(renderLineChart(tok.meta, theme));
+          else if (tok.meta.type === "pie") body.push(renderPieChart(tok.meta, theme));
+        } else body.push(renderTable(tok.meta));
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        body.push(`<div class="mdv-error">Failed to render ${tok.kind} block: ${escapeHtml(msg)}</div>`);
+      }
       continue;
     }
-    if (tok.kind === "stat") {
-      body.push(renderStatBlock(tok.meta, theme));
-      continue;
-    }
-    if (tok.kind === "chart") {
-      if (tok.meta.type === "bar") body.push(renderBarChart(tok.meta, theme));
-      else if (tok.meta.type === "line") body.push(renderLineChart(tok.meta, theme));
-      else if (tok.meta.type === "pie") body.push(renderPieChart(tok.meta, theme));
-    } else if (tok.kind === "table") {
-      body.push(renderTable(tok.meta));
-    } else if (tok.kind === "container-open") {
+    if (tok.kind === "container-open") {
       const name = tok.meta.name;
       if (name === "columns") body.push(`<div class="mdv-columns">`);
       else if (name === "col") body.push(`<div class="mdv-col">`);
@@ -108,8 +117,10 @@ export function renderDocument(doc: MdvDoc): string {
     } else if (tok.kind === "container-close") {
       body.push(`</div>`);
     } else if (tok.kind === "error") {
+      if (tok.meta.severity === "fatal") continue; // already rendered at top of doc
+      const cls = tok.meta.severity === "warning" ? "mdv-warning" : "mdv-error";
       body.push(
-        `<div class="mdv-error">${escapeHtml(tok.meta.message)}${tok.meta.source ? ` <code>(${escapeHtml(tok.meta.source)})</code>` : ""}</div>`,
+        `<div class="${cls}">${escapeHtml(tok.meta.message)}${tok.meta.source ? ` <code>(${escapeHtml(tok.meta.source)})</code>` : ""}</div>`,
       );
     }
   }
