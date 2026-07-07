@@ -2,7 +2,7 @@
   "name": "mdv-vscode",
   "displayName": "MDV — Markdown Data & Visualization Preview",
   "description": "Live preview for .mdv files: charts, tables, stats, named styles, themes, TOC.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "publisher": "drasimwagan",
   "license": "MIT",
   "icon": "assets/icon.png",
@@ -110,7 +110,7 @@
     "publish": "vsce publish"
   },
   "devDependencies": {
-    "@mdv/core": "0.1.0",
+    "@mdv/core": "0.2.0",
     "@types/vscode": "^1.125.0",
     "@vscode/vsce": "^3.9.2",
     "esbuild": "^0.28.1"

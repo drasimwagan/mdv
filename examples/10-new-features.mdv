@@ -13,7 +13,7 @@ theme: minimal
 ```stat
 label, value, delta
 Total revenue, $2.06M, +14%
-New customers, 1,238, +8%
+New customers, "1,238", +8%
 Churn rate, 2.1%, -0.4%
 NPS, 62, +6
 ```

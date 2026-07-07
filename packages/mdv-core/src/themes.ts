@@ -51,6 +51,7 @@ export const THEMES: Record<string, Theme> = {
 };
 
 export function getTheme(name: unknown): Theme {
-  if (typeof name === "string" && THEMES[name]) return THEMES[name];
+  // Object.hasOwn: a name like "constructor" must not resolve via the prototype chain.
+  if (typeof name === "string" && Object.hasOwn(THEMES, name)) return THEMES[name];
   return THEMES.minimal;
 }

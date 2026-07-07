@@ -1,10 +1,14 @@
 import type { TableMeta } from "../ast.js";
 import type { Theme } from "../themes.js";
-import { escapeHtml } from "./svg-util.js";
+import { escapeHtml, columnSet } from "./svg-util.js";
 
 export function renderStatBlock(meta: TableMeta, theme: Theme): string {
   const rows = meta.data;
   if (!rows.length) return `<div class="mdv-error">Stat block has no rows</div>`;
+  const cols = columnSet(rows);
+  if (!cols.has("label") || !cols.has("value")) {
+    return `<div class="mdv-error">${escapeHtml(`Stat block requires 'label' and 'value' columns (found: ${[...cols].join(", ") || "none"})`)}</div>`;
+  }
 
   const cards = rows.map((r) => {
     const label = String(r.label ?? "");

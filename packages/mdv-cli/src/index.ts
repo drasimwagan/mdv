@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
 import path from "node:path";
-import { renderFile, VERSION } from "@mdv/core";
+import { renderFile, renderFileWithDiagnostics, VERSION } from "@mdv/core";
 import { previewCommand } from "./preview-cmd.js";
 import { exportPdfCommand } from "./export-cmd.js";
+
+function friendlyError(e: unknown, file: string): string {
+  const err = e as NodeJS.ErrnoException;
+  if (err.code === "ENOENT") return `file not found: ${file}`;
+  return err.message;
+}
 
 function usage(): never {
   console.error("mdv — render MDV documents");
@@ -43,7 +49,7 @@ async function main() {
     try {
       await exportPdfCommand(file, out, ps);
     } catch (e) {
-      console.error(`Error: ${(e as Error).message}`);
+      console.error(`Error: ${friendlyError(e, file)}`);
       process.exit(1);
     }
     return;
@@ -53,7 +59,12 @@ async function main() {
     const file = rest[0];
     if (!file) usage();
     const portIdx = rest.indexOf("--port");
-    const port = portIdx >= 0 ? Number(rest[portIdx + 1]) : 3000;
+    const portRaw = portIdx >= 0 ? rest[portIdx + 1] : "3000";
+    const port = Number(portRaw);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      console.error(`Error: invalid --port '${portRaw ?? ""}' — expected a number between 1 and 65535`);
+      process.exit(1);
+    }
     await previewCommand(file, port);
     return;
   }
@@ -67,12 +78,20 @@ async function main() {
       process.exit(1);
     }
     const out = outIdx >= 0 ? rest[outIdx + 1] : file.replace(/\.mdv$/i, "") + ".html";
+    const strict = rest.includes("--strict");
     try {
-      const html = await renderFile(file);
+      const { html, fatals, warnings } = await renderFileWithDiagnostics(file);
+      await fs.mkdir(path.dirname(path.resolve(out)), { recursive: true });
       await fs.writeFile(out, html, "utf8");
       console.error(`Rendered ${file} -> ${path.resolve(out)}`);
+      // The document renders regardless (errors never crash the doc), but the
+      // author should still see problems on the terminal.
+      for (const f of fatals) console.error(`  fatal: ${f}`);
+      for (const w of warnings) console.error(`  warning: ${w}`);
+      // --strict makes fatal document errors fail the command, for CI gating.
+      if (strict && fatals.length) process.exit(1);
     } catch (e) {
-      console.error(`Error: ${(e as Error).message}`);
+      console.error(`Error: ${friendlyError(e, file)}`);
       process.exit(1);
     }
     return;

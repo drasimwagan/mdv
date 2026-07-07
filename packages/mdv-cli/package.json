@@ -1,6 +1,6 @@
 {
   "name": "@mdv/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "bin": {
     "mdv": "dist/index.js"
@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@mdv/core": "0.1.0",
+    "@mdv/core": "0.2.0",
     "puppeteer": "^24.43.0"
   }
 }

@@ -50,6 +50,14 @@ export function compileStyles(
         continue;
       }
       const v = String(vRaw);
+      // The compiled CSS is emitted verbatim inside a <style> element. A value
+      // containing these characters could close the rule or the element and
+      // inject markup (e.g. `red } </style><script>…`). None are valid in the
+      // flat style vocabulary, so reject the declaration.
+      if (/[<>{}]/.test(v) || v.includes("</")) {
+        warnings.push(`Unsafe character in style value for '${k}' in style '${name}' — ignored`);
+        continue;
+      }
       switch (k) {
         case "color": rules.push(`color: ${v}`); break;
         case "background": rules.push(`background: ${v}`); break;
