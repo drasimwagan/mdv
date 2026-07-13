@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "markdown-it": "^14.2.0",
-    "js-yaml": "^4.3.0"
+    "js-yaml": "^5.2.1"
   },
   "devDependencies": {
     "@types/markdown-it": "^14.1.0",
