@@ -3,6 +3,7 @@ updates:
   # Root workspace + all packages
   - package-ecosystem: npm
     directory: "/"
+    target-branch: dev          # all updates land on dev, ship to main with a release
     schedule:
       interval: weekly
       day: monday
@@ -20,6 +21,7 @@ updates:
   # GitHub Actions themselves (e.g. checkout, setup-node)
   - package-ecosystem: github-actions
     directory: "/"
+    target-branch: dev
     schedule:
       interval: weekly
       day: monday

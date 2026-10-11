@@ -37,8 +37,9 @@ Thumbs.db
 # Packaged extensions
 *.vsix
 
-# Private / internal docs — planning specs, implementation plans, launch drafts
-docs/superpowers/
+# Private / internal docs — spec-driven development constitution + feature specs
+# (specs/, maintainer-local), launch drafts
+specs/
 docs/launch/
 
 # Generated site (built by scripts/build-site.mjs, deployed via Pages workflow)
