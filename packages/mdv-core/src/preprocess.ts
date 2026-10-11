@@ -35,13 +35,34 @@ export function directiveFromText(content: string): Directive | null {
 //   - opener: 0-3 spaces, a run of >=3 backticks or tildes; a backtick fence's
 //     info string may not contain a backtick.
 //   - closer: 0-3 spaces, the same character, at least as long, then only spaces.
-const FENCE_OPEN_RE = /^ {0,3}(`{3,}|~{3,})(.*)$/;
-const FENCE_CLOSE_RE = /^ {0,3}(`+|~+)[ \t]*$/;
-const DIRECTIVE_RE = /^:::[ \t]*(.*)$/;
-const FULL_LINE_COMMENT_RE = /^<!--.*?-->[ \t]*$/;
+//
+// ReDoS safety (untrusted input): every line regex must run in linear time.
+// Never use `.` here — it excludes U+2028/U+2029, so a quantified run followed
+// by `(.*)$` backtracks quadratically on a long line containing one of those
+// (CodeQL js/polynomial-redos). `[^\n]*$` always matches to the end once
+// reached, so it never forces backtracking into the preceding run.
+const FENCE_OPEN_RE = /^ {0,3}(`{3,}|~{3,})([^\n]*)$/;
+const FENCE_CLOSE_RE = /^ {0,3}(`+|~+)[ \t]*$/; // linear: [ \t] can't overlap the run
+const DIRECTIVE_RE = /^:::([^\n]*)$/; // leading spaces/tabs are removed by .trim()
+// A line that is exactly one complete comment: "<!--" … "-->", then optional
+// spaces/tabs. Plain string checks, deliberately not a regex: this is not a
+// sanitizer (html:false escapes all raw markup), it only hides a cosmetic
+// single-line comment; multi-line comments are intentionally left (escaped).
+// Equivalent to the former /^<!--.*?-->[ \t]*$/ (differential-tested).
+function isFullLineComment(line: string): boolean {
+  let end = line.length;
+  while (end > 0 && (line[end - 1] === " " || line[end - 1] === "\t")) end--;
+  return end >= 7 && line.startsWith("<!--") && line.startsWith("-->", end - 3);
+}
+
+// Split exactly as markdown-it normalizes line endings (\r\n, lone \r, \n).
+// A lone \r is a CommonMark line ending; splitting only on \r?\n would make
+// this pass and markdown-it disagree about lines (fence drift), and let a
+// lone \r reach the regexes above.
+const LINE_SPLIT_RE = /\r\n?|\n/;
 
 export function preprocess(body: string): string {
-  const lines = body.split(/\r?\n/);
+  const lines = body.split(LINE_SPLIT_RE);
   const out: string[] = [];
   let fenceMarker: string | null = null; // the run that opened the current fence
 
@@ -69,7 +90,7 @@ export function preprocess(body: string): string {
       continue;
     }
 
-    if (FULL_LINE_COMMENT_RE.test(line)) continue;
+    if (isFullLineComment(line)) continue;
 
     out.push(line);
   }
