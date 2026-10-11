@@ -4,6 +4,31 @@ All notable changes to MDV are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (pre-1.0: minor
 versions may include behavior changes).
 
+## [0.2.1] — 2026-10-11
+
+A security patch release. Upgrading is recommended for anyone rendering
+`.mdv`/`.md` files they did not write themselves.
+
+### Security
+
+- **Denial of service on crafted documents (ReDoS) fixed.** A single very long
+  `:::` or code-fence line containing a lone carriage return (`\r`) or a
+  Unicode line/paragraph separator (U+2028/U+2029) made the `:::` pre-pass
+  take quadratic time — about 0.4 s at 40 000 characters and minutes at
+  1 MB — hanging `mdv render`, `mdv preview` and the VS Code preview. Line
+  handling is now linear-time and covered by regression tests. Found by
+  CodeQL code scanning.
+- **GitHub Actions pinned to commit SHAs.** Every workflow action, including
+  the third-party release action, is now referenced by an immutable commit SHA
+  instead of a movable version tag.
+
+### Fixed
+
+- **Classic-Mac (lone `\r`) line endings.** Documents saved with bare `\r` line
+  endings now parse exactly like LF/CRLF documents. Previously `:::`
+  directives and code fences were not recognized in such files, so they
+  rendered differently from the same content with LF endings.
+
 ## [0.2.0] — 2026-07-07
 
 A correctness and robustness release. The renderer is now hardened against the

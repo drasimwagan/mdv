@@ -35,13 +35,27 @@ export function directiveFromText(content: string): Directive | null {
 //   - opener: 0-3 spaces, a run of >=3 backticks or tildes; a backtick fence's
 //     info string may not contain a backtick.
 //   - closer: 0-3 spaces, the same character, at least as long, then only spaces.
-const FENCE_OPEN_RE = /^ {0,3}(`{3,}|~{3,})(.*)$/;
-const FENCE_CLOSE_RE = /^ {0,3}(`+|~+)[ \t]*$/;
-const DIRECTIVE_RE = /^:::[ \t]*(.*)$/;
-const FULL_LINE_COMMENT_RE = /^<!--.*?-->[ \t]*$/;
+//
+// ReDoS safety (untrusted input): every line regex must run in linear time.
+// Never use `.` here — it excludes U+2028/U+2029, so a quantified run followed
+// by `(.*)$` backtracks quadratically on a long line containing one of those
+// (CodeQL js/polynomial-redos). `[^\n]*$` always matches to the end once
+// reached, so it never forces backtracking into the preceding run.
+const FENCE_OPEN_RE = /^ {0,3}(`{3,}|~{3,})([^\n]*)$/;
+const FENCE_CLOSE_RE = /^ {0,3}(`+|~+)[ \t]*$/; // linear: [ \t] can't overlap the run
+const DIRECTIVE_RE = /^:::([^\n]*)$/; // leading spaces/tabs are removed by .trim()
+// Not a sanitizer: html:false escapes all raw markup. This only hides a complete
+// single-line comment; multi-line comments are intentionally left (escaped).
+const FULL_LINE_COMMENT_RE = /^<!--[^\n]*?-->[ \t]*$/;
+
+// Split exactly as markdown-it normalizes line endings (\r\n, lone \r, \n).
+// A lone \r is a CommonMark line ending; splitting only on \r?\n would make
+// this pass and markdown-it disagree about lines (fence drift), and let a
+// lone \r reach the regexes above.
+const LINE_SPLIT_RE = /\r\n?|\n/;
 
 export function preprocess(body: string): string {
-  const lines = body.split(/\r?\n/);
+  const lines = body.split(LINE_SPLIT_RE);
   const out: string[] = [];
   let fenceMarker: string | null = null; // the run that opened the current fence
 
