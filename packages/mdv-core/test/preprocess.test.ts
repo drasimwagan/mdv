@@ -96,8 +96,8 @@ test("closing fence must match the opener length/char", () => {
 const N = 200_000;
 const BREAKERS: Array<[string, string]> = [
   ["lone CR", "\r"],
-  ["U+2028", " "],
-  ["U+2029", " "],
+  ["U+2028", "\u2028"],
+  ["U+2029", "\u2029"],
 ];
 const RUNS: Array<[string, string]> = [
   [":::", ":::" + "\t".repeat(N)],
@@ -162,10 +162,21 @@ test("comments the regex does not hide render escaped, never as live markup", as
 });
 
 // The full-line-comment check is plain string logic (no regex, so no
-// bad-tag-filter false positive). Differential test against the former regex
-// over a deterministic pseudo-random corpus of comment-ish lines.
-test("isFullLineComment matches the former /^<!--.*?-->[ \t]*$/ exactly", () => {
-  const OLD = /^<!--.*?-->[ \t]*$/;
+// bad-tag-filter false positive). Differential test against an oracle that
+// spells out the former regex (start "<!--", lazy any, "-->", spaces/tabs, end)
+// step by step: some "-->" at index >= 4 is followed only by spaces/tabs, and
+// the span before it has no \r / U+2028 / U+2029 (which `.` never matched).
+// The oracle was also checked against the literal former regex: 200k/200k.
+function formerRegexOracle(line: string): boolean {
+  if (!line.startsWith("<!--")) return false;
+  for (let p = line.indexOf("-->", 4); p !== -1; p = line.indexOf("-->", p + 1)) {
+    if ([13, 0x2028, 0x2029].some((c) => line.slice(4, p).includes(String.fromCharCode(c)))) return false;
+    if (/^[ \t]*$/.test(line.slice(p + 3))) return true;
+  }
+  return false;
+}
+
+test("isFullLineComment matches the former comment regex exactly (differential)", () => {
   const parts = ["<!--", "-->", "--", "-", "<", "!", ">", " ", "\t", "a", "<!-->", "x y"];
   let seed = 12345;
   const rnd = (n: number) => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) % n);
@@ -174,6 +185,6 @@ test("isFullLineComment matches the former /^<!--.*?-->[ \t]*$/ exactly", () => 
     const k = 1 + rnd(7);
     for (let j = 0; j < k; j++) line += parts[rnd(parts.length)];
     const dropped = !preprocess(`a\n${line}\nb`).includes(line);
-    assert.equal(dropped, OLD.test(line), `mismatch for ${JSON.stringify(line)}`);
+    assert.equal(dropped, formerRegexOracle(line), `mismatch for ${JSON.stringify(line)}`);
   }
 });
