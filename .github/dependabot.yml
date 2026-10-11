@@ -11,6 +11,11 @@ updates:
       minor-and-patch:
         update-types: ["minor", "patch"]
     labels: ["dependencies"]
+    ignore:
+      # @types/vscode must track engines.vscode (vsce refuses to package if the
+      # types are newer). Bump both together, deliberately, not via Dependabot.
+      - dependency-name: "@types/vscode"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   # GitHub Actions themselves (e.g. checkout, setup-node)
   - package-ecosystem: github-actions
