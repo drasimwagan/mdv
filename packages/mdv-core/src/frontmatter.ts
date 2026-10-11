@@ -1,4 +1,4 @@
-import yaml from "js-yaml";
+import { load as loadYaml } from "js-yaml";
 
 export interface FrontmatterResult {
   data: Record<string, unknown>;
@@ -17,7 +17,7 @@ export function extractFrontmatterSafe(source: string): FrontmatterSafeResult {
   if (!m) return { data: {}, body: source };
   const body = source.slice(m[0].length);
   try {
-    const parsed = yaml.load(m[1]);
+    const parsed = loadYaml(m[1]);
     const data = parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
     return { data, body };
   } catch (e) {

@@ -5,7 +5,7 @@ export type Token = {
   info: string;
   markup: string;
   children: Token[] | null;
-  attrs: Array<[string, string]> | null;
+  attrs: Array<[string, string | number]> | null;
   level: number;
   nesting: -1 | 0 | 1;
   block: boolean;
