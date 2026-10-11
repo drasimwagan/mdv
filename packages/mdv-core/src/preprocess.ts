@@ -44,9 +44,16 @@ export function directiveFromText(content: string): Directive | null {
 const FENCE_OPEN_RE = /^ {0,3}(`{3,}|~{3,})([^\n]*)$/;
 const FENCE_CLOSE_RE = /^ {0,3}(`+|~+)[ \t]*$/; // linear: [ \t] can't overlap the run
 const DIRECTIVE_RE = /^:::([^\n]*)$/; // leading spaces/tabs are removed by .trim()
-// Not a sanitizer: html:false escapes all raw markup. This only hides a complete
+// A line that is exactly one complete comment: "<!--" … "-->", then optional
+// spaces/tabs. Plain string checks, deliberately not a regex: this is not a
+// sanitizer (html:false escapes all raw markup), it only hides a cosmetic
 // single-line comment; multi-line comments are intentionally left (escaped).
-const FULL_LINE_COMMENT_RE = /^<!--[^\n]*?-->[ \t]*$/;
+// Equivalent to the former /^<!--.*?-->[ \t]*$/ (differential-tested).
+function isFullLineComment(line: string): boolean {
+  let end = line.length;
+  while (end > 0 && (line[end - 1] === " " || line[end - 1] === "\t")) end--;
+  return end >= 7 && line.startsWith("<!--") && line.startsWith("-->", end - 3);
+}
 
 // Split exactly as markdown-it normalizes line endings (\r\n, lone \r, \n).
 // A lone \r is a CommonMark line ending; splitting only on \r?\n would make
@@ -83,7 +90,7 @@ export function preprocess(body: string): string {
       continue;
     }
 
-    if (FULL_LINE_COMMENT_RE.test(line)) continue;
+    if (isFullLineComment(line)) continue;
 
     out.push(line);
   }

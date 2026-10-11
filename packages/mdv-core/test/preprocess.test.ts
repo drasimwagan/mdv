@@ -160,3 +160,20 @@ test("comments the regex does not hide render escaped, never as live markup", as
   assert.match(html, /&lt;!-- multi/);
   assert.match(html, /&lt;script&gt;/);
 });
+
+// The full-line-comment check is plain string logic (no regex, so no
+// bad-tag-filter false positive). Differential test against the former regex
+// over a deterministic pseudo-random corpus of comment-ish lines.
+test("isFullLineComment matches the former /^<!--.*?-->[ \t]*$/ exactly", () => {
+  const OLD = /^<!--.*?-->[ \t]*$/;
+  const parts = ["<!--", "-->", "--", "-", "<", "!", ">", " ", "\t", "a", "<!-->", "x y"];
+  let seed = 12345;
+  const rnd = (n: number) => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) % n);
+  for (let i = 0; i < 20000; i++) {
+    let line = "";
+    const k = 1 + rnd(7);
+    for (let j = 0; j < k; j++) line += parts[rnd(parts.length)];
+    const dropped = !preprocess(`a\n${line}\nb`).includes(line);
+    assert.equal(dropped, OLD.test(line), `mismatch for ${JSON.stringify(line)}`);
+  }
+});
