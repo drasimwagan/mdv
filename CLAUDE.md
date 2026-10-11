@@ -4,88 +4,86 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**MDV** — a Markdown-superset format for authoring documents, dashboards, and slides with embedded data and visualizations.
+**MDV** is a Markdown-superset format for authoring documents, dashboards, and slides with embedded data and visualizations. v0.2.0 ships `@mdv/core`, `@mdv/cli`, and a VS Code extension.
 
-Authoritative design spec and implementation plan live under `docs/superpowers/` locally (gitignored, not published). Read them before making non-trivial changes — all decisions below are elaborated there.
+## Spec-driven development
 
-## Core Product Decisions (locked in during brainstorming, 2026-04-18)
+This project follows spec-driven development (the DeepLearning.AI / JetBrains *Spec-Driven Development with Coding Agents* workflow). Specs come before code.
 
-These are non-negotiable constraints agreed with the user. Do not revisit without explicit approval.
+### The constitution
 
-- **Audience**: non-technical authors (analysts, writers). No selectors, classes, expressions, or code in the authoring surface.
-- **Format**: strict **superset of CommonMark**. Every valid `.md` is a valid `.mdv`. Only additions, never changes to core Markdown syntax. Graceful degradation in plain MD viewers is a first-class requirement.
+`specs/` is **maintainer-local and gitignored**; it is not in the published repo. Read the constitution before any non-trivial change:
+
+- `specs/mission.md`: purpose, audiences in priority order, immutable principles, and non-goals
+- `specs/tech-stack.md`: stack, dependency policy, and known gaps
+- `specs/roadmap.md`: small phases, in order. The next phase is the first one not marked complete.
+
+### Feature specs
+
+Each roadmap phase gets `specs/YYYY-MM-DD-<feature-name>/`:
+
+- `requirements.md`: scope, decisions, and context
+- `plan.md`: numbered task groups
+- `validation.md`: how we know it's done and mergeable
+
+`specs/2026-04-18-mdv-v1/` is the retroactive spec for the original v1 build.
+
+### The loop (one phase per branch: `phase-<N>-<kebab-name>`)
+
+1. **Spec**: the `/feature-spec` skill (`.claude/skills/feature-spec/`) creates the branch, interviews the user, and writes the three files. Don't write files before the interview.
+2. **Implement**: work through `plan.md` group by group. Keep the spec in sync if the plan changes.
+3. **Validate and ship**: the `/feature-ship` skill runs the `validation.md` checks and reconciles the specs with reality (replanning). It then ticks the roadmap, runs `/changelog`, and opens a PR.
+4. **Replan** whenever implementation contradicts the constitution: update `mission.md` / `tech-stack.md` / `roadmap.md` first, then code. Crossing a non-goal requires the owner's explicit approval.
+
+Without the specs (for example, an external contributor), the core decisions below are the contract.
+
+## Core Product Decisions (locked 2026-04-18)
+
+These are non-negotiable constraints agreed with the owner. Do not revisit them without explicit approval. They are elaborated in `specs/mission.md`.
+
+- **Audience**: non-technical authors (analysts, writers) come first. No selectors, classes, expressions, or code in the authoring surface. Secondary audiences: developers embedding `@mdv/core`, and docs-as-code/CI teams.
+- **Format**: a strict **superset of CommonMark**. Every valid `.md` is a valid `.mdv`. Only additions, never changes to core Markdown syntax. Graceful degradation in plain MD viewers is a first-class requirement.
 - **Syntax additions** (only these):
-  - YAML front-matter for doc-level config (`theme`, `data:`, `styles:`, `locale`).
+  - YAML front-matter for document-level config (`theme`, `data:`, `styles:`, `locale`).
   - Fenced code blocks with info-string options for **data and charts**: `` ```chart type=bar x=col y=col ``.
-  - `:::` container directives for **styled regions and layout** (`::: callout`, `::: columns` / `::: col`).
+  - `:::` container directives for **styled regions and layout** (`::: callout`, `::: columns` / `::: col`, `::: toc`).
   - Info strings use `key=value` (quoted strings allowed). No JSON, no JS in options.
-- **Styling model**: themes (built-in) + named styles (author-defined in front-matter). Flat vocabulary only — color, spacing, typography, layout. No per-element overrides in v1.
-- **Data**: inline CSV (default), inline JSON (opt-in via `format=json`), or named dataset referencing a local file (`./data/sales.csv`). **No URLs, no transformations** in v1.
-- **v1 visualizations**: `table`, `stat` (KPI cards), `chart type=bar`, `chart type=line`, `chart type=pie`. Inline SVG output.
-- **Axis number formats**: bar and line charts accept `yFormat=currency|percent|thousands` for axis + tooltip formatting.
-- **Auto TOC**: `::: toc` container auto-generates a contents list from `##`/`###` headings with anchor links.
-- **Exports**: self-contained HTML (`mdv render`), PDF (`mdv export --pdf`, via puppeteer headless Chromium).
-- **Rendering**: `mdv preview` runs an in-memory live-preview server with file watching + auto-reload.
+- **Styling model**: built-in themes plus named styles that authors define in front-matter. Flat vocabulary only: color, spacing, typography, layout. No per-element overrides.
+- **Data**: inline CSV (the default), inline JSON (opt-in via `format=json`), or a named dataset referencing a local file (`./data/sales.csv`). **No URLs and no transformations.**
+- **Visualizations**: `table`, `stat` (KPI cards), and `chart type=bar|line|pie` as inline SVG. Bar and line charts accept `yFormat=currency|percent|thousands`.
+- **Exports**: self-contained HTML (`mdv render`) and PDF (`mdv export --pdf`, via puppeteer).
 
-## Architecture (planned)
+## Architecture
 
-Monorepo, three packages:
+Monorepo using npm workspaces:
 
-- `packages/mdv-core` — parser (markdown-it base) + AST + HTML/SVG renderer. Pure TypeScript, no DOM deps.
-- `packages/mdv-cli` — `mdv render | export | preview` commands.
-- `packages/mdv-preview` — browser widget for live preview and embedding.
-- `packages/mdv-vscode` — VS Code extension: side-by-side live preview in a webview, auto-refresh on edit/save and on data-file changes. Uses dynamic `import("@mdv/core")` (CJS → ESM bridge).
+- `packages/mdv-core`: the parser (markdown-it base, `html: false`), AST, and HTML/SVG renderer. Pure TypeScript with no DOM dependencies. It has an in-house SVG chart renderer, with no Chart.js or D3.
+- `packages/mdv-cli`: the `mdv render | export | preview | version` commands.
+- `packages/mdv-vscode`: a VS Code extension providing side-by-side webview preview. It loads core through dynamic `import("@mdv/core")` (a CJS-to-ESM bridge). `@types/vscode` is pinned to `engines.vscode`.
+- `scripts/build-site.mjs`: builds the GitHub Pages landing site and gallery.
 
-Pipeline: `.mdv` → markdown-it → mdv extension pass (front-matter, fenced blocks, `:::` containers, data resolution) → mdv AST → HTML renderer → self-contained HTML.
-
-Runtime: Node ≥ 20. Key deps: `markdown-it`, `js-yaml`, `puppeteer` (PDF only). **In-house SVG chart renderer** for v1 — no Chart.js / D3 dependency.
-
-## Non-goals (v1)
-
-Explicitly deferred — don't design for these:
-
-- Interactivity beyond hover `<title>` tooltips.
-- Data transformations (filter, group-by, compute, expressions).
-- Remote data sources (URLs, APIs, DBs).
-- Chart types beyond the four v1 types.
-- Per-block style overrides.
-- Non-JS reference implementations (Python/Rust).
+Pipeline: `.mdv` → fence-aware `:::` pre-pass → markdown-it → mdv extension pass (front-matter, fenced blocks, containers, data resolution) → mdv AST → HTML renderer → self-contained HTML.
 
 ## Working Conventions
 
-- **Follow the spec first.** If a requirement conflicts with the spec, flag it — don't silently diverge.
-- **YAGNI is enforced.** Added features must serve the non-technical author. New chart types, new style keys, new data sources → belong to a future spec revision.
-- **Deterministic output.** Renderer output (HTML, SVG) must be byte-stable for identical input. Golden-file testing depends on this.
-- **Errors never crash the doc.** Block-level errors render an inline red banner; sibling blocks continue. Fatal errors render a top-of-doc banner. Warnings (unknown style key, unknown theme) render a yellow banner but the block still renders with fallback.
-
-## Testing Strategy (planned)
-
-- Parser: golden AST fixtures.
-- Renderer: golden HTML fixtures.
-- Charts: golden SVG fixtures (pixel-stable).
-- CLI: integration tests over an example corpus; PDF validated by header + page count only.
-- **Graceful-degradation test**: example corpus must parse through plain `markdown-it` without errors.
+- **Spec first.** If a request conflicts with the constitution or a feature spec, flag it rather than silently diverging.
+- **YAGNI is enforced.** New chart types, style keys, or data sources each need a roadmap phase.
+- **Deterministic output.** Renderer output (HTML, SVG) must be byte-stable for identical input.
+- **Errors never crash the document.** Block-level errors render an inline red banner and sibling blocks continue. Fatal errors render a top-of-document banner. Warnings render a yellow banner while the block renders with a fallback.
+- **No new runtime dependencies** without the owner's approval.
+- **`main` is protected.** Work on a branch and open a PR. Never merge yourself.
 
 ## Commands
 
-No build/test commands exist yet — project is pre-implementation. This section will be filled in once `packages/mdv-cli` and the build pipeline exist. Expected surface (from spec):
-
 ```
-mdv render <file.mdv> [--out <path>]                          # implemented
-mdv preview <file.mdv> [--port <n>]                           # implemented — in-memory render + file watcher + live reload
-mdv export <file.mdv> --pdf [--out <path>] [--page-size ...]  # implemented — puppeteer-based PDF export
+npm ci                                   # install (Node ≥ 20)
+npm run build                            # core → cli → vscode, in dependency order
+npm test                                 # node:test via tsx (packages/mdv-core/test)
+
+node packages/mdv-cli/dist/index.js render <file.mdv> [--out <path>] [--strict]
+node packages/mdv-cli/dist/index.js preview <file.mdv> [--port <n>]
+node packages/mdv-cli/dist/index.js export <file.mdv> --pdf [--out <path>] [--page-size letter|a4]
+
+npm run build:site                       # GitHub Pages site → site/
+cd packages/mdv-vscode && npx vsce package --no-dependencies   # build the .vsix
 ```
-
-## Brainstorming Trail (for context)
-
-Decisions above were reached through a structured brainstorm. Key path the user chose:
-
-1. Use case → **general-purpose** (docs + dashboards + slides from one source).
-2. Audience → **non-technical** authors.
-3. Data → **inline + local file refs**.
-4. Styling → **themes + named styles** (not inline attributes).
-5. Exports → **HTML + PDF** for v1, with live rendering as primary UX.
-6. Relationship to Markdown → **strict superset of CommonMark** (graceful degradation required).
-7. v1 visuals → **minimal**: table, bar, line, pie.
-8. Syntax → **both** — fenced blocks for data/charts, `:::` for styled containers.
-9. Architecture → **Approach 1**: single JS renderer library + thin CLI (chose over pandoc/MyST extension and multi-implementation spec-first approaches).
