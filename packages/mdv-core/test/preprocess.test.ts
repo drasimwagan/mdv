@@ -86,3 +86,105 @@ test("closing fence must match the opener length/char", () => {
   const out = preprocess("````\n```\n::: x\n````\n");
   assert.equal(directivesOf("````\n```\n::: x\n````\n").length, 0, "::: stays inside the ```` fence");
 });
+
+// ---------------------------------------------------------------------------
+// Security: ReDoS (CodeQL js/polynomial-redos) and line-ending parity.
+// Before the fix, `:::` / fence lines containing a lone \r, U+2028 or U+2029
+// backtracked quadratically: ~0.4 s at 40k chars, minutes at 1 MB.
+// ---------------------------------------------------------------------------
+
+const N = 200_000;
+const BREAKERS: Array<[string, string]> = [
+  ["lone CR", "\r"],
+  ["U+2028", "\u2028"],
+  ["U+2029", "\u2029"],
+];
+const RUNS: Array<[string, string]> = [
+  [":::", ":::" + "\t".repeat(N)],
+  ["backtick fence", "`".repeat(N)],
+  ["tilde fence", "~".repeat(N)],
+  ["comment", "<!--" + "-->\t".repeat(N / 4)],
+];
+
+for (const [runName, run] of RUNS) {
+  for (const [brkName, brk] of BREAKERS) {
+    test(`ReDoS guard: ${runName} line + ${brkName} (${N} chars) preprocesses in linear time`, () => {
+      const line = run + brk + "x";
+      const t0 = performance.now();
+      preprocess(line);
+      const ms = performance.now() - t0;
+      assert.ok(ms < 200, `took ${ms.toFixed(1)} ms`);
+    });
+  }
+}
+
+const DOC_LF = "intro\n\n::: callout\nInside.\n:::\n\n```js\n::: not-a-directive\n```\n\ntail\n";
+
+test("LF, CRLF and lone-CR line endings preprocess identically", () => {
+  const lf = preprocess(DOC_LF);
+  assert.equal(preprocess(DOC_LF.replace(/\n/g, "\r\n")), lf);
+  assert.equal(preprocess(DOC_LF.replace(/\n/g, "\r")), lf);
+});
+
+test("lone-CR document renders identically to its LF twin (no fence drift)", async () => {
+  const { parse } = await import("../src/parser.ts");
+  const { renderDocument } = await import("../src/render/html.ts");
+  const lf = renderDocument(await parse(DOC_LF));
+  const cr = renderDocument(await parse(DOC_LF.replace(/\n/g, "\r")));
+  assert.equal(cr, lf);
+  assert.match(lf, /::: not-a-directive/); // still literal inside the fence
+});
+
+test("directive names are still trimmed of surrounding spaces and tabs", () => {
+  assert.deepEqual(directivesOf(":::\t callout \t\n\n:::\n"), [
+    { kind: "open", name: "callout" },
+    { kind: "close" },
+  ]);
+});
+
+test("fence info strings with leading spaces still open a fence", () => {
+  assert.equal(directivesOf("```   js title=x\n::: callout\n```\n").length, 0);
+});
+
+// CodeQL js/bad-tag-filter on FULL_LINE_COMMENT_RE is a false positive: the
+// regex is not a sanitizer. html:false escapes every raw tag, so comments the
+// regex leaves alone (multi-line, inline) render as escaped text, never markup.
+test("comments the regex does not hide render escaped, never as live markup", async () => {
+  const { parse } = await import("../src/parser.ts");
+  const { renderDocument } = await import("../src/render/html.ts");
+  const html = renderDocument(
+    await parse("a\n<!-- multi\nline --><script>alert(1)</script>\nb <!-- x --> <img src=x onerror=alert(1)>\n"),
+  );
+  assert.doesNotMatch(html, /<script>alert/);
+  assert.doesNotMatch(html, /<img src=x/);
+  assert.match(html, /&lt;!-- multi/);
+  assert.match(html, /&lt;script&gt;/);
+});
+
+// The full-line-comment check is plain string logic (no regex, so no
+// bad-tag-filter false positive). Differential test against an oracle that
+// spells out the former regex (start "<!--", lazy any, "-->", spaces/tabs, end)
+// step by step: some "-->" at index >= 4 is followed only by spaces/tabs, and
+// the span before it has no \r / U+2028 / U+2029 (which `.` never matched).
+// The oracle was also checked against the literal former regex: 200k/200k.
+function formerRegexOracle(line: string): boolean {
+  if (!line.startsWith("<!--")) return false;
+  for (let p = line.indexOf("-->", 4); p !== -1; p = line.indexOf("-->", p + 1)) {
+    if ([13, 0x2028, 0x2029].some((c) => line.slice(4, p).includes(String.fromCharCode(c)))) return false;
+    if (/^[ \t]*$/.test(line.slice(p + 3))) return true;
+  }
+  return false;
+}
+
+test("isFullLineComment matches the former comment regex exactly (differential)", () => {
+  const parts = ["<!--", "-->", "--", "-", "<", "!", ">", " ", "\t", "a", "<!-->", "x y"];
+  let seed = 12345;
+  const rnd = (n: number) => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) % n);
+  for (let i = 0; i < 20000; i++) {
+    let line = "";
+    const k = 1 + rnd(7);
+    for (let j = 0; j < k; j++) line += parts[rnd(parts.length)];
+    const dropped = !preprocess(`a\n${line}\nb`).includes(line);
+    assert.equal(dropped, formerRegexOracle(line), `mismatch for ${JSON.stringify(line)}`);
+  }
+});
