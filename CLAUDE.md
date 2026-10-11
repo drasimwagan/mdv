@@ -28,11 +28,11 @@ Each roadmap phase gets `specs/YYYY-MM-DD-<feature-name>/`:
 
 `specs/2026-04-18-mdv-v1/` is the retroactive spec for the original v1 build.
 
-### The loop (one phase per branch: `phase-<N>-<kebab-name>`)
+### The loop (one phase per branch: `phase-<N>-<kebab-name>`, cut from `dev`)
 
 1. **Spec**: the `/feature-spec` skill (`.claude/skills/feature-spec/`) creates the branch, interviews the user, and writes the three files. Don't write files before the interview.
 2. **Implement**: work through `plan.md` group by group. Keep the spec in sync if the plan changes.
-3. **Validate and ship**: the `/feature-ship` skill runs the `validation.md` checks and reconciles the specs with reality (replanning). It then ticks the roadmap, runs `/changelog`, and opens a PR.
+3. **Validate and ship**: the `/feature-ship` skill runs the `validation.md` checks and reconciles the specs with reality (replanning). It then ticks the roadmap, runs `/changelog`, and opens a PR into `dev`.
 4. **Replan** whenever implementation contradicts the constitution: update `mission.md` / `tech-stack.md` / `roadmap.md` first, then code. Crossing a non-goal requires the owner's explicit approval.
 
 Without the specs (for example, an external contributor), the core decisions below are the contract.
@@ -71,7 +71,21 @@ Pipeline: `.mdv` → fence-aware `:::` pre-pass → markdown-it → mdv extensio
 - **Deterministic output.** Renderer output (HTML, SVG) must be byte-stable for identical input.
 - **Errors never crash the document.** Block-level errors render an inline red banner and sibling blocks continue. Fatal errors render a top-of-document banner. Warnings render a yellow banner while the block renders with a fallback.
 - **No new runtime dependencies** without the owner's approval.
-- **`main` is protected.** Work on a branch and open a PR. Never merge yourself.
+- **Never push to `dev` or `main` directly, and never merge PRs yourself.** Both are protected by rulesets. See "Branching & security" below.
+
+## Branching & security
+
+Full detail is in [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+
+- **`dev`** is the default branch and the integration branch. Every branch is cut from `dev`, and every PR targets `dev`, which uses **squash merge**. The one exception is `hotfix/*`, which is cut from `main` and targets `main`.
+- **`main`** holds released code only. It receives release PRs (`dev` → `main`, titled `release: vX.Y.Z`) and hotfixes, both merged with a **merge commit**, never a squash. After a hotfix, back-merge `main` → `dev` with a merge commit.
+- **Required checks on both branches**: `Build & test (Node 20/22)`, `Analyze (javascript-typescript)`, `Analyze (actions)`, and `Dependency review`. There is also a CodeQL merge gate: new high- or critical-severity alerts block the PR. `main` additionally requires 1 approving review. The owner bypasses that only through a PR.
+- **Security rules for agents:**
+  - Never dismiss a code-scanning or Dependabot alert, and never bypass secret push protection. Fix the problem, or report it to the owner.
+  - Never commit credentials, tokens, or absolute local paths.
+  - Never discuss an unfixed vulnerability in a public issue, PR, or commit message. Those go through private advisories (SECURITY.md).
+  - A failing CodeQL or dependency-review check is a blocker, not noise. Fix it on the same branch.
+  - Treat `.mdv` content, front-matter, data files, and CLI arguments as untrusted. Escape output (`escapeHtml`), keep regexes linear-time, and keep data paths inside the document directory.
 
 ## Commands
 

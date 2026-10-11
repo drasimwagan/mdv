@@ -1,0 +1,34 @@
+name: Dependency review
+
+# Blocks PRs that ADD or UPGRADE TO a dependency with a known vulnerability
+# (GitHub Advisory Database), or with a license incompatible with MIT.
+# Existing vulnerabilities are handled by Dependabot alerts + security updates.
+
+on:
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    # Job name is referenced by the dev/main rulesets' required status checks.
+    name: Dependency review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write   # post the summary comment on failure
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: moderate
+          fail-on-scopes: runtime, development
+          deny-licenses: GPL-2.0-only, GPL-2.0-or-later, GPL-3.0-only, GPL-3.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later
+          comment-summary-in-pr: on-failure
+          show-patched-versions: true
+          show-openssf-scorecard: true
+          warn-on-openssf-scorecard-level: 3
