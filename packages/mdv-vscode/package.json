@@ -112,7 +112,7 @@
   "devDependencies": {
     "@mdv/core": "0.2.1",
     "@types/vscode": "~1.85.0",
-    "@vscode/vsce": "^4.0.0",
+    "@vscode/vsce": "^4.1.0",
     "esbuild": "^0.28.2"
   }
 }
